@@ -2,7 +2,7 @@
 
 Patches for OrbusVR Classic/Preborn.
 
-These are client-side BepInEx plugins that patch or work around issues in the original game client. (Currently only one, but more could be added in the future)
+These are client-side BepInEx plugins that patch or work around issues in the game client. (Currently only one, but more could be added in the future)
 
 If you want to read more about BepInEx you can check out their [documentation](https://docs.bepinex.dev).
 
