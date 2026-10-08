@@ -13,7 +13,7 @@ If you want to read more about BepInEx you can check out their [documentation](h
 * Place the `.dll` in: `BepInEx/plugins/` directory (Note: You might need to launch the game once for this folder to generate)
 
 For example:
-``OrbusVR/BepInEx/plugins/OrbusWandFix.dll```
+`OrbusVR/BepInEx/plugins/OrbusWandFix.dll`
 
 ## Linux / Proton
 
