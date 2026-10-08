@@ -1,0 +1,11 @@
+bin/
+obj/
+
+.idea/
+
+**/lib/*.dll
+
+*.pdb
+
+*.user
+*.suo
