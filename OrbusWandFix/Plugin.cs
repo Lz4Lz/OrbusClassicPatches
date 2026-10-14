@@ -56,7 +56,7 @@ namespace OrbusWandFix
 
             
             // move/tp with wand hand
-            teleporter.SetAllowTeleport(true);
+            teleporter.SetAllowTeleport(false);
         }
     }
     
