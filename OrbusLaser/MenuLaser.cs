@@ -13,7 +13,6 @@ namespace OrbusLaserPointer
 
         private const float MaxDistance = 8f; // laser reach
         private const float PokeDistance = 0.05f; // Orbus "poke" handles it closer than this.
-        private const float MinHoldTime = 0.12f; // keep the PowerUI "mouse down" at least this long
 
         private static readonly Color HoverColor = new Color(0.1f, 1f, 0.4f, 0.95f);
         private static readonly Color PressedColor = new Color(1f, 0.85f, 0.1f, 1f);
@@ -25,8 +24,7 @@ namespace OrbusLaserPointer
         private OrbusTrackedController _controller;
         private Transform _aim;
         private LineRenderer _line;
-        private bool _triggerWasDown, _powerUiDown, _pendingRelease;
-        private float _powerUiDownTime;
+        private bool _triggerWasDown, _powerUiDown;
 
         // World-space uGUI buttons (NPC dialogue). Cached because FindObjectsOfType is slow.
         private static readonly List<Selectable> GUIList = new List<Selectable>();
@@ -114,18 +112,13 @@ namespace OrbusLaserPointer
                 else if (useMenu && hit.distance >= PokeDistance)
                     ClickMenu(hit, powerUi);
             }
-            else if (!down && _triggerWasDown && _powerUiDown)
+            else if (!down && _triggerWasDown)
             {
-                _pendingRelease = true;
+                ReleaseMenu();
             }
 
             _triggerWasDown = down;
-
-            if (_pendingRelease && Time.unscaledTime - _powerUiDownTime >= MinHoldTime)
-            {
-                _pendingRelease = false;
-                ReleaseMenu();
-            }
+            
 
             if (!powerUi && _overrideOwner == this && !_powerUiDown)
                 _overrideOwner = null;
@@ -147,12 +140,10 @@ namespace OrbusLaserPointer
             if (powerUi)
             {
                 ReleaseMenu();
-                _pendingRelease = false;
                 _overrideOwner = this;
                 _overrideHit = hit;
                 PowerUI.Input.OnMouseDown(0, 0);
                 _powerUiDown = true;
-                _powerUiDownTime = Time.unscaledTime;
             }
             else
             {
@@ -231,7 +222,6 @@ namespace OrbusLaserPointer
         private void OnDisable()
         {
             ReleaseMenu();
-            _pendingRelease = false;
             if (_overrideOwner == this)
                 _overrideOwner = null;
             _triggerWasDown = false;
