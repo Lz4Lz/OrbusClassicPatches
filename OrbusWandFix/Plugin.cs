@@ -2,39 +2,48 @@ using BepInEx;
 using HarmonyLib;
 using MagicalActual;
 using UnityEngine;
+using BepInEx.Configuration;
 
 namespace OrbusWandFix
 {
     [BepInPlugin(
         "orbusvrcommunity.wandfix",
         "Orbus Classic/Preborn Wand Hand Fix",
-        "1.0.0"
+        "1.1.0"
     )]
     public class Plugin : BaseUnityPlugin
     {
+        public static ConfigEntry<bool> EnableTeleport;
+
         private void Awake()
         {
-            var harmony = new Harmony("orbusvrcommunity.wandfix");
+            EnableTeleport = Config.Bind(
+                "WandFix",
+                "Teleport",
+                false,
+                "Enable Teleport With Wand Hand"
+            );
             
+            var harmony = new Harmony("orbusvrcommunity.wandfix");
+
+
             harmony.PatchAll();
             Logger.LogInfo("OrbusWandFix loaded.");
         }
     }
 
-    [HarmonyPatch(typeof(MagicalActual.Runemage), "EnablePrimaryWeapon")]
+    [HarmonyPatch(typeof(Runemage), "EnablePrimaryWeapon")]
     internal static class RunemagePatch
     {
-        private static void Postfix(MagicalActual.Runemage __instance)
+        private static void Postfix(Runemage __instance)
         {
-            var player = MagicalActual.PlayerCharacter.Instance;
+            var player = PlayerCharacter.Instance;
 
             if (player == null)
                 return;
 
-            if (player.myHeadsetType != MagicalActual.PlayerCharacter.headsetType.VIVE)
-            {
+            if (player.myHeadsetType != PlayerCharacter.headsetType.VIVE)
                 return;
-            }
 
             var primaryController = Traverse.Create(__instance).Field("primaryController").GetValue<GameObject>();
 
@@ -43,23 +52,22 @@ namespace OrbusWandFix
 
             var teleporterTransform = primaryController.transform.Find("Teleporter");
 
-            if (teleporterTransform == null) 
+            if (teleporterTransform == null)
                 return;
 
-            var teleporter = teleporterTransform.GetComponent<MagicalActual.Teleporter>();
+            var teleporter = teleporterTransform.GetComponent<Teleporter>();
 
             if (teleporter == null)
                 return;
-            
+
             // For rotation
             teleporter.gameObject.SetActive(true);
 
-            
-            // move/tp with wand hand
-            teleporter.SetAllowTeleport(false);
+            // Move/Tp with wand hand (By default, false)
+            teleporter.SetAllowTeleport(Plugin.EnableTeleport.Value);
         }
     }
-    
+
     // Disables casting with joystick movement
     [HarmonyPatch(typeof(Runemage), "doPadClick")]
     internal static class RunemageDoPadClickPatch
@@ -67,6 +75,7 @@ namespace OrbusWandFix
         private static bool Prefix(object sender, ClickedEventArgs e)
         {
             var player = PlayerCharacter.Instance;
+
             if (player == null || player.myHeadsetType != PlayerCharacter.headsetType.VIVE)
                 return true;
 
