@@ -7,10 +7,13 @@ using UnityEngine;
 
 namespace OrbusWandAdjustment
 {
-    [BepInPlugin("orbusvrcommunity.wandadjustment", "Orbus Classic/Preborn Wand Adjustment", "1.3.0")]
+    [BepInPlugin("orbusvrcommunity.wandadjustment", "Orbus Classic/Preborn Wand Adjustment", "1.4.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> OffsetX, OffsetY, OffsetZ, RotX, RotY, RotZ;
+
+        public static ConfigEntry<float> LendRotX, LendRotY, LendRotZ;
+
         public static ConfigEntry<bool> AlignServerAim;
         public static ConfigEntry<bool> AlignServerPosition;
         public static ConfigEntry<string> ServerRigOverride;
@@ -26,11 +29,20 @@ namespace OrbusWandAdjustment
             RotY = Config.Bind("Wand Offset", "Rotation Y", 0.0f, "Local Y rotation (degrees)");
             RotZ = Config.Bind("Wand Offset", "Rotation Z", 0.0f, "Local Z rotation (degrees)");
 
+            LendRotX = Config.Bind("Lend A Hand", "Rotation X", 0f,
+                "Tilts the off hands aim axis up/down (positive = down)");
+
+            LendRotY = Config.Bind("Lend A Hand", "Rotation Y", 0f,
+                "Turns the off hands aim axis left/right (positive = right)");
+
+            LendRotZ = Config.Bind("Lend A Hand", "Rotation Z", 0f,
+                "Roll around the aim axis. Leave at zero, recommended. (nose still points the same way)");
+
             AlignServerAim = Config.Bind("Server Aim", "Align Server Aim", true,
                 "Adjust the controller rotation sent to the server so Ice Lance / Super go where your adjusted wand points (recommended true, leave default)");
 
             AlignServerPosition = Config.Bind("Server Aim", "Align Server Position", true,
-                "Adjust the sent hand position so the server wand tip is where the wand tip really is. Others might see your hand slightly off. (recommended true, leave default)");
+                "Adjust the sent hand position so the server wand tip is where the wand tip really is. (recommended true, leave default)");
 
             ServerRigOverride = Config.Bind("Server Aim", "Server Rig Type", "Auto",
                 "Auto = detect from headset (recommended). Steam = force Vive/Index values. Rift = force Oculus/Rift values.");
@@ -73,6 +85,57 @@ namespace OrbusWandAdjustment
         }
     }
 
+
+    [HarmonyPatch(typeof(OrbusNetManager), "WriteObjectPosRot")]
+    static class LendAHandPatch
+    {
+        static bool Prefix(BinaryWriter writer, GameObject obj)
+        {
+            float x = Plugin.LendRotX.Value, y = Plugin.LendRotY.Value, z = Plugin.LendRotZ.Value;
+
+            if (x == 0f && y == 0f && z == 0f)
+                return true;
+
+            var mage = WandOffsetPatch.LocalMage;
+
+            if (mage == null)
+                return true;
+
+            var wand = mage.wand;
+
+            if (wand == null || !wand.activeInHierarchy || wand.transform.parent == null)
+                return true;
+
+            var pc = PlayerCharacter.Instance;
+
+            if (pc == null || pc.myPlayerAvatar == null)
+                return true;
+
+            var av = pc.myPlayerAvatar;
+
+            GameObject offHand = wand.transform.parent.gameObject == av.leftController
+                ? av.rightController
+                : av.leftController;
+
+            if (offHand != obj)
+                return true;
+
+            Vector3 p = obj.transform.localPosition;
+            Quaternion q = obj.transform.localRotation * Quaternion.Euler(x, y, z);
+
+            writer.Write(p.x);
+            writer.Write(p.y);
+            writer.Write(p.z);
+            writer.Write(q.x);
+            writer.Write(q.y);
+            writer.Write(q.z);
+            writer.Write(q.w);
+
+            return false;
+        }
+    }
+    
+    // Fixes the Ice Lance / Super issue.
     [HarmonyPatch(typeof(OrbusNetManager), "WriteObjectPosRot")]
     static class ServerAimPatch
     {
