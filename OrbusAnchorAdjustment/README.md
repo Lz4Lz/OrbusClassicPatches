@@ -1,8 +1,10 @@
 # OrbusAnchor
 
-Let's you change the position of items on you (currently only supports ranger arrows and trap) but more items will be supported in the future.
+Let's you change the position of items on you. Supporting player compass, Warrior horn, Ranger Arrows and Trap.
 
-Once in game, you can click F8 to toggle the Anchor editor (Game must be focused for this to work). You will see draggable orbs on top of the items, simply drag them to the desired position and toggle off the editor with F8 again. The Anchor toggle keybind can be changed in the BepInEx config.
+Once in game, you will see a new section in settings called "Mods" where you can click on "Adjust Anchors" to toggle on the editor.
+You will now be able to drag the supported items around. Click on the "Adjust Anchors" button again to toggle off the editor, 
+saving the current settings.
 
 You can also see the positions in the config and change them there if needed.
 

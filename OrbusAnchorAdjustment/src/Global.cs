@@ -6,7 +6,7 @@ namespace OrbusAnchor
 {
     static class GlobalEditor
     {
-        // one global editor, lives on the local PlayerCharacter
+        // one global editor, on the local PlayerCharacter
         public static AnchorEditor Get()
         {
             var pc = PlayerCharacter.Instance;
