@@ -12,6 +12,8 @@ namespace OrbusAnchor
         public Transform Space;
         public ConfigEntry<string> Config;
         public Transform Orb;
+        public Vector3 DefaultLocalPos;
+        public bool HasDefault;
     }
 
     public class AnchorEditor : MonoBehaviour
@@ -19,12 +21,28 @@ namespace OrbusAnchor
         private const float OrbScale = 0.05f;
         private const float GrabRadius = 0.20f;
 
+        // true = not tied to a class (compass, hip, etc.)
+        public bool Global;
+
         private readonly List<AnchorTarget> _list = new List<AnchorTarget>();
 
         private readonly int[] _held = { -1, -1 };
         private readonly Vector3[] _offset = new Vector3[2]; // hand to target, in Space-local
         private readonly bool[] _wasGripped = new bool[2];
-        
+
+        private static readonly List<AnchorEditor> All = new List<AnchorEditor>();
+
+        private void Awake() => All.Add(this);
+
+        private void OnDestroy() => All.Remove(this);
+
+        // Reset (all classes + global), not just one
+        public static void ResetAll()
+        {
+            foreach (var e in All.ToArray())
+                e.ResetMine();
+        }
+
         public void Register(string id, Transform target, Transform space, ConfigEntry<string> cfg)
         {
             for (int i = 0; i < _list.Count; i++)
@@ -40,12 +58,35 @@ namespace OrbusAnchor
                 return;
             }
 
-            var a = new AnchorTarget { Id = id, Transform = target, Space = space, Config = cfg };
+            var a = new AnchorTarget
+            {
+                Id = id,
+                Transform = target,
+                Space = space,
+                Config = cfg,
+                DefaultLocalPos = space.InverseTransformPoint(target.position),
+                HasDefault = true,
+            };
 
             ApplySaved(a);
             a.Orb = MakeOrb(target);
             _list.Add(a);
             Plugin.Log.LogInfo("Registered: " + id);
+        }
+
+        private void ResetMine()
+        {
+            SaveAndRelease(0);
+            SaveAndRelease(1);
+
+            for (int i = 0; i < _list.Count; i++)
+            {
+                var a = _list[i];
+                a.Config.Value = "";
+
+                if (a.HasDefault && a.Transform != null && a.Space != null)
+                    a.Transform.position = a.Space.TransformPoint(a.DefaultLocalPos);
+            }
         }
 
         private static void ApplySaved(AnchorTarget a)
@@ -91,26 +132,38 @@ namespace OrbusAnchor
             return go.transform;
         }
 
+        private bool IsActiveClass()
+        {
+            if (Global)
+                return true;
+
+            var pc = PlayerCharacter.Instance;
+
+            if (pc == null || pc.myPlayerAvatar == null)
+                return false;
+
+            var cls = pc.myPlayerAvatar.currentActiveClass;
+
+            return cls != null && cls.gameObject == gameObject;
+        }
+
         private void Update()
         {
-            if (Input.GetKeyDown(Plugin.ToggleKey.Value))
-            {
-                if (Plugin.EditMode)
-                {
-                    SaveAndRelease(0);
-                    SaveAndRelease(1);
-                }
+            bool active = IsActiveClass();
 
-                Plugin.EditMode = !Plugin.EditMode;
+            if (!active)
+            {
+                SaveAndRelease(0);
+                SaveAndRelease(1);
             }
 
             for (int i = 0; i < _list.Count; i++)
             {
                 if (_list[i].Orb != null)
-                    _list[i].Orb.gameObject.SetActive(Plugin.EditMode);
+                    _list[i].Orb.gameObject.SetActive(Plugin.EditMode && active);
             }
 
-            if (!Plugin.EditMode)
+            if (!Plugin.EditMode || !active)
                 return;
 
             var pc = PlayerCharacter.Instance;
@@ -181,11 +234,9 @@ namespace OrbusAnchor
 
                 for (int h = 0; h < 2; h++)
                 {
-                    if (_held[h] == i)
-                    {
-                        alreadyHeld = true;
-                        break;
-                    }
+                    if (_held[h] != i) continue;
+                    alreadyHeld = true;
+                    break;
                 }
 
                 if (alreadyHeld)
@@ -193,11 +244,9 @@ namespace OrbusAnchor
 
                 float d = Vector3.Distance(hand.transform.position, _list[i].Transform.position);
 
-                if (d < bestD)
-                {
-                    bestD = d;
-                    best = i;
-                }
+                if (!(d < bestD)) continue;
+                bestD = d;
+                best = i;
             }
 
             if (best < 0)

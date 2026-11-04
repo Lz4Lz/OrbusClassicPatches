@@ -2,23 +2,33 @@ using System.Globalization;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using OrbusModMenu;
 using UnityEngine;
 
 namespace OrbusAnchor
 {
-    [BepInPlugin("orbusvrcommunity.orbusanchor", "Orbus Anchor Adjustment", "1.0.0")]
+    [BepInPlugin("orbusvrcommunity.orbusanchor", "Orbus Anchor Adjustment", "1.2.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static BepInEx.Logging.ManualLogSource Log;
-        public static ConfigEntry<KeyCode> ToggleKey;
         public static bool EditMode;
         private static ConfigFile _config;
+
+        private const string MenuSection = "Anchors";
 
         private void Awake()
         {
             Log = Logger;
             _config = Config;
-            ToggleKey = Config.Bind("Keys", "ToggleEdit", KeyCode.F8, "Toggle edit mode (show orbs, drag anchors)");
+
+            ModMenu.AddToggle(MenuSection, "Adjust Anchors",
+                () => Plugin.EditMode,
+                v => Plugin.EditMode = v);
+
+            ModMenu.AddButton(MenuSection, "Reset Anchors",
+                () => AnchorEditor.ResetAll());
+
+            ModMenu.AddDescription(MenuSection, "Drag orbs while edit mode is on.");
 
             new Harmony("orbusvrcommunity.orbusanchor").PatchAll();
 
