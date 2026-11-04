@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+    <OutputType>Library</OutputType>
+
+    <AssemblyName>WeaponAdjustment</AssemblyName>
+    <RootNamespace>WeaponAdjustment</RootNamespace>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx">
+	    <HintPath>../lib/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="0Harmony">
+	    <HintPath>../lib/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="Assembly-CSharp">
+	    <HintPath>../lib/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="UnityEngine">
+	    <HintPath>../lib/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+
+    <Compile Include="../lib/OrbusModMenu/src/ModMenu.cs" Link="ModMenu.cs" />
+
+  </ItemGroup>
+
+</Project>
