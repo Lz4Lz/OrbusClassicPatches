@@ -1,6 +1,6 @@
 # OrbusAnchor
 
-Let's you change the position of items on you. Supporting player compass, Warrior horn, Ranger Arrows and Trap.
+Lets you change the position of items on you. Supporting player compass, Warrior horn, Ranger Arrows and Trap.
 
 Once in game, you will see a new section in settings called "Mods" where you can click on "Adjust Anchors" to toggle on the editor.
 You will now be able to drag the supported items around. Click on the "Adjust Anchors" button again to toggle off the editor, 

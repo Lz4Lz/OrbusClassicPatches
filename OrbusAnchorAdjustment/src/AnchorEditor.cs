@@ -36,7 +36,8 @@ namespace OrbusAnchor
 
         private void OnDestroy() => All.Remove(this);
 
-        // Reset (all classes + global), not just one
+        // Reset (all classes + global)
+        // Will add support for individual classes later.
         public static void ResetAll()
         {
             foreach (var e in All.ToArray())
