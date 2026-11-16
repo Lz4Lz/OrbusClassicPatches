@@ -17,7 +17,6 @@ namespace WeaponAdjustment.Weapons
 
         public Vector3 LengthAxis = Vector3.up;
         public string[] BlockInput = new string[0]; // private methods to skip while adjusting (e.g., casting)
-        public bool PositionOnly; // the game drives the weapons rotation itself (e.g. Ranger bow)
 
         private GameObject _nativeOwner;
         private Vector3 _nativePos;
@@ -29,7 +28,7 @@ namespace WeaponAdjustment.Weapons
 
             if (pc == null || pc.myPlayerAvatar == null)
                 return false;
-            
+
             var cls = pc.myPlayerAvatar.currentActiveClass;
             return cls != null && cls.GetComponent(ClassType) != null;
         }
@@ -43,6 +42,8 @@ namespace WeaponAdjustment.Weapons
             _nativeRot = weapon.transform.localRotation;
             _nativeOwner = weapon;
         }
+
+        //public Quaternion NativeRot { get { return _nativeRot; } }
 
         public void Apply()
         {
@@ -59,9 +60,7 @@ namespace WeaponAdjustment.Weapons
             }
 
             weapon.transform.localPosition = pos;
-
-            if (!PositionOnly)
-                weapon.transform.localRotation = rot;
+            weapon.transform.localRotation = rot;
         }
     }
 
