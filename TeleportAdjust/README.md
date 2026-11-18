@@ -1,4 +1,4 @@
-#Teleport Adjustment
+# Teleport Adjustment
 
 Lets you adjust the teleportation beam. Adjustment is done in the config file: `orbusvrcommunity.teleportadjustment.cfg`
 
